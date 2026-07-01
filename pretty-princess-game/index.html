@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プリティ・プリンセス マジカルコーディネート風 〜きらめきのお城〜</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js",
+    "three/addons/": "./lib/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- 金の飾り枠 -->
+  <div id="frame-overlay" class="hidden"></div>
+
+  <!-- ローディング -->
+  <div id="loading-screen">
+    <div class="loading-crown">👑</div>
+    <div class="loading-text">じゅんびちゅう…</div>
+    <div class="loading-bar"><div id="loading-fill"></div></div>
+  </div>
+
+  <!-- タイトル画面 -->
+  <div id="title-screen" class="screen hidden">
+    <div class="title-sparkles"></div>
+    <h1 class="game-title">
+      <span class="title-small">きらめきのお城</span>
+      <span class="title-main">プリンセス</span>
+      <span class="title-sub">マジカルコーディネート</span>
+    </h1>
+    <div class="title-buttons">
+      <button id="btn-continue" class="royal-btn big hidden">つづきから</button>
+      <button id="btn-newgame" class="royal-btn big">はじめから</button>
+    </div>
+    <div class="title-copyright">✦ 廃れたお城を、世界いちかわいいお城に ✦</div>
+  </div>
+
+  <!-- オープニング / ストーリー -->
+  <div id="story-screen" class="screen hidden">
+    <div class="story-box">
+      <p id="story-text"></p>
+      <button id="btn-story-next" class="royal-btn">つぎへ ▶</button>
+    </div>
+  </div>
+
+  <!-- 城マップ(部屋えらび) -->
+  <div id="map-screen" class="screen hidden">
+    <div class="map-header">
+      <h2>🏰 お城のちず 〜へやをえらんでね〜</h2>
+      <div class="map-progress"><span id="map-progress-text"></span><div class="map-progress-bar"><div id="map-progress-fill"></div></div></div>
+    </div>
+    <div id="castle-map"></div>
+    <div class="map-footer">
+      <button id="btn-map-quests" class="royal-btn small">📜 クエスト</button>
+      <button id="btn-map-achievements" class="royal-btn small">🏆 じっせき</button>
+      <button id="btn-map-dressup" class="royal-btn small">👗 ドレスアップ</button>
+      <button id="btn-map-gacha" class="royal-btn small">🎀 まほうのガチャ</button>
+      <button id="btn-map-title" class="royal-btn small ghost">タイトルへ</button>
+    </div>
+  </div>
+
+  <!-- HUD(部屋にいるとき) -->
+  <div id="hud" class="hidden">
+    <div class="hud-top-left">
+      <button id="btn-back-map" class="icon-btn" title="お城のちずへ">🏰</button>
+      <div id="hud-room-name" class="hud-room-name"></div>
+      <div id="hud-score" class="hud-score"></div>
+    </div>
+    <div class="hud-top-right">
+      <div class="wallet"><span class="coin-icon">🪙</span><span id="hud-coins">0</span></div>
+      <div class="wallet"><span class="coin-icon">💎</span><span id="hud-jewels">0</span></div>
+      <button id="btn-daynight" class="icon-btn" title="ひる/よる">🌸</button>
+      <button id="btn-sound" class="icon-btn" title="おと ON/OFF">🔔</button>
+    </div>
+    <div class="hud-bottom-right">
+      <button id="btn-mode-edit" class="royal-btn">🛋 もようがえ</button>
+      <button id="btn-mode-photo" class="royal-btn">📷 ふうけいカメラ</button>
+      <button id="btn-hud-quests" class="royal-btn small">📜</button>
+    </div>
+    <div id="hud-hint" class="hud-hint">ゆかをクリックするとプリンセスがあるくよ</div>
+  </div>
+
+  <!-- 編集モードUI -->
+  <div id="edit-ui" class="hidden">
+    <div class="edit-topbar">
+      <button id="btn-edit-exit" class="royal-btn small">✔ もようがえ おわり</button>
+      <div id="edit-score-panel"></div>
+      <div class="edit-cat-info"><span id="edit-selected-name"></span></div>
+    </div>
+    <div id="edit-actions" class="edit-actions hidden">
+      <button id="btn-act-move" class="action-btn">✋ うごかす</button>
+      <button id="btn-act-rotate" class="action-btn">🔄 まわす</button>
+      <button id="btn-act-store" class="action-btn">📦 しまう</button>
+      <button id="btn-act-cancel" class="action-btn">✖ とじる</button>
+    </div>
+    <div id="catalog-panel">
+      <div id="catalog-tabs"></div>
+      <div id="catalog-filter">
+        <input id="catalog-search" type="text" placeholder="🔍 なまえでさがす">
+        <select id="catalog-color-filter"><option value="">ぜんぶのいろ</option></select>
+        <label class="owned-filter"><input type="checkbox" id="catalog-owned-only"> もっているものだけ</label>
+      </div>
+      <div id="catalog-grid"></div>
+      <div id="catalog-pager"></div>
+    </div>
+    <div id="edit-help" class="edit-help">クリックでおく ・ Rキーでまわす ・ 右クリックでキャンセル ・ おいたものをクリックでへんこう</div>
+  </div>
+
+  <!-- フォトモードUI -->
+  <div id="photo-ui" class="hidden">
+    <div class="photo-topbar">
+      <span class="photo-title">📷 ふうけいカメラ</span>
+      <button id="btn-photo-exit" class="royal-btn small">やめる</button>
+    </div>
+    <div class="photo-frame-deco"></div>
+    <div class="photo-bottombar">
+      <div class="photo-group">
+        <span class="photo-label">ポーズ</span>
+        <button class="photo-btn pose-btn" data-pose="stand">たつ</button>
+        <button class="photo-btn pose-btn" data-pose="wave">バイバイ</button>
+        <button class="photo-btn pose-btn" data-pose="bow">おじぎ</button>
+        <button class="photo-btn pose-btn" data-pose="twirl">くるくる</button>
+        <button class="photo-btn pose-btn" data-pose="hide">キャラなし</button>
+      </div>
+      <div class="photo-group">
+        <span class="photo-label">フィルター</span>
+        <button class="photo-btn filter-btn" data-filter="none">なし</button>
+        <button class="photo-btn filter-btn" data-filter="dream">ドリーミー</button>
+        <button class="photo-btn filter-btn" data-filter="retro">レトロ</button>
+        <button class="photo-btn filter-btn" data-filter="vivid">ビビッド</button>
+        <button class="photo-btn filter-btn" data-filter="mono">モノクロ</button>
+      </div>
+      <button id="btn-photo-shoot" class="royal-btn">✨ さつえい ✨</button>
+    </div>
+  </div>
+
+  <!-- ドレスアップUI -->
+  <div id="dressup-screen" class="screen hidden">
+    <div class="dressup-layout">
+      <div class="dressup-preview"><canvas id="dressup-canvas"></canvas></div>
+      <div class="dressup-panel">
+        <h2>👗 ドレスアップ</h2>
+        <div id="dressup-options"></div>
+        <button id="btn-dressup-done" class="royal-btn">きまり!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 汎用ダイアログ -->
+  <div id="dialog-overlay" class="hidden">
+    <div id="dialog-box">
+      <div id="dialog-title"></div>
+      <div id="dialog-content"></div>
+      <div id="dialog-buttons"></div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toast-container"></div>
+
+  <!-- 復興セレモニー演出 -->
+  <div id="ceremony-overlay" class="hidden">
+    <div class="ceremony-text" id="ceremony-text"></div>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
