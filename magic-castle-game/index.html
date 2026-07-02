@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#2a1a5e">
+<title>マジックキャッスル 〜まほうのお城のハッピーライフ〜</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js",
+    "three/addons/": "./lib/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ローディング画面 -->
+  <div id="loading-screen">
+    <div class="loading-castle">🏰</div>
+    <div class="loading-title">マジックキャッスル</div>
+    <div class="loading-sub">まほうのお城のハッピーライフ</div>
+    <div class="loading-bar"><div id="loading-fill"></div></div>
+    <div class="loading-text" id="loading-text">おしろをたてています…</div>
+  </div>
+
+  <!-- タイトル画面 -->
+  <div id="title-screen" class="hidden">
+    <div class="title-stars"></div>
+    <h1 class="game-title"><span class="t1">マジック</span><span class="t2">キャッスル</span></h1>
+    <p class="game-subtitle">〜まほうのお城のハッピーライフ〜</p>
+    <button id="btn-start" class="big-btn">✨ ぼうけんをはじめる ✨</button>
+    <button id="btn-continue" class="big-btn secondary hidden">📖 つづきから</button>
+    <p class="title-hint">イヤホン推奨 🎧 / 縦でも横でもあそべます</p>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="hud-top">
+      <div id="hud-status">
+        <div class="stat" id="stat-coins"><span class="stat-icon">🪙</span><span id="coins-val">0</span></div>
+        <div class="stat" id="stat-happy"><span class="stat-icon">💖</span><span id="happy-val">0</span></div>
+        <div class="stat" id="stat-level"><span class="stat-icon">👑</span><span id="level-val">Lv.1</span></div>
+      </div>
+      <div id="hud-clock"><span id="clock-icon">☀️</span><span id="clock-text">ひる</span></div>
+      <div id="hud-buttons">
+        <button class="hud-btn" id="btn-dressup" title="きせかえ">👗</button>
+        <button class="hud-btn" id="btn-shop" title="ショップ">🛍️</button>
+        <button class="hud-btn" id="btn-book" title="ずかん">📖</button>
+        <button class="hud-btn" id="btn-quest" title="おねがい">📜</button>
+        <button class="hud-btn" id="btn-photo" title="しゃしん">📷</button>
+        <button class="hud-btn" id="btn-sound" title="おと">🔊</button>
+      </div>
+    </div>
+
+    <div id="quest-tracker" class="hidden">
+      <div class="qt-title">📜 おねがい</div>
+      <div class="qt-body" id="qt-body"></div>
+    </div>
+
+    <!-- 仮想ジョイスティック -->
+    <div id="joystick-zone">
+      <div id="joystick-base"><div id="joystick-knob"></div></div>
+    </div>
+
+    <!-- アクションボタン -->
+    <div id="action-zone">
+      <button id="btn-magic" class="round-btn magic"><span>🪄</span><label>まほう</label></button>
+      <button id="btn-action" class="round-btn action hidden"><span id="action-icon">💬</span><label id="action-label">はなす</label></button>
+    </div>
+
+    <div id="interact-hint" class="hidden"></div>
+  </div>
+
+  <!-- 会話ウィンドウ -->
+  <div id="dialog-box" class="hidden">
+    <div id="dialog-name"></div>
+    <div id="dialog-text"></div>
+    <div id="dialog-choices" class="hidden"></div>
+    <div id="dialog-next">▼ タップ</div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toast-area"></div>
+
+  <!-- 汎用パネル(ショップ・きせかえ・ずかん・クエスト) -->
+  <div id="panel-overlay" class="hidden">
+    <div id="panel">
+      <div id="panel-header">
+        <span id="panel-title">パネル</span>
+        <button id="panel-close">✕</button>
+      </div>
+      <div id="panel-tabs"></div>
+      <div id="panel-body"></div>
+    </div>
+  </div>
+
+  <!-- つりミニゲーム -->
+  <div id="fishing-ui" class="hidden">
+    <div id="fishing-msg">ウキをみていてね…</div>
+    <div id="fishing-gauge" class="hidden">
+      <div id="fishing-target"></div>
+      <div id="fishing-cursor"></div>
+    </div>
+    <button id="fishing-btn" class="big-btn small">🎣 あわせる!</button>
+  </div>
+
+  <!-- ダンスミニゲーム -->
+  <div id="dance-ui" class="hidden">
+    <div id="dance-score">SCORE 0</div>
+    <div id="dance-lanes">
+      <div class="dance-lane" data-lane="0"><div class="lane-hit">💜</div></div>
+      <div class="dance-lane" data-lane="1"><div class="lane-hit">💛</div></div>
+      <div class="dance-lane" data-lane="2"><div class="lane-hit">💙</div></div>
+    </div>
+    <div id="dance-judge"></div>
+  </div>
+
+  <!-- リザルト -->
+  <div id="result-overlay" class="hidden">
+    <div id="result-card">
+      <div id="result-title">🎉 だいせいこう!</div>
+      <div id="result-body"></div>
+      <button id="result-ok" class="big-btn small">OK!</button>
+    </div>
+  </div>
+
+  <!-- 写真モード -->
+  <div id="photo-ui" class="hidden">
+    <button id="photo-shoot" class="big-btn small">📸 さつえい</button>
+    <button id="photo-exit" class="big-btn small secondary">もどる</button>
+  </div>
+
+  <div id="fader"></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
