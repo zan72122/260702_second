@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>プリンセス マジカルガーデン 〜まほうの花の島〜</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌷</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js",
+    "three/addons/": "./lib/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ローディング画面 -->
+  <div id="loading-screen">
+    <div class="loading-flower">🌷</div>
+    <div class="loading-text">まほうのしまへ しゅっぱつちゅう…</div>
+    <div class="loading-bar"><div id="loading-fill"></div></div>
+  </div>
+
+  <!-- タイトル画面 -->
+  <div id="title-screen" class="screen hidden">
+    <div class="title-sparkles" aria-hidden="true"></div>
+    <h1 class="game-title">
+      <span class="title-small">✨ プリンセス ✨</span>
+      <span class="title-main">マジカルガーデン</span>
+      <span class="title-sub">〜まほうの花の島〜</span>
+    </h1>
+    <div class="title-buttons">
+      <button id="btn-continue" class="big-btn pink hidden">つづきから 🌸</button>
+      <button id="btn-newgame" class="big-btn gold">はじめから ✨</button>
+    </div>
+    <p class="title-hint">タップとスワイプであそべるよ</p>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <!-- 上部ステータス -->
+    <div id="top-bar">
+      <div class="stat-chip" id="chip-sparkle"><span class="chip-icon">✨</span><span id="stat-sparkle">0</span></div>
+      <div class="stat-chip" id="chip-petal"><span class="chip-icon">🌸</span><span id="stat-petal">0</span></div>
+      <div class="stat-chip level-chip" id="chip-level">
+        <span class="chip-icon">👑</span><span>Lv.<span id="stat-level">1</span></span>
+        <div class="level-bar"><div id="level-fill"></div></div>
+      </div>
+      <div class="stat-chip" id="chip-clock"><span id="stat-clock">☀️</span></div>
+    </div>
+
+    <!-- クエストバナー -->
+    <div id="quest-banner">
+      <span class="quest-fairy">🧚</span>
+      <div class="quest-body">
+        <div id="quest-title">クエスト</div>
+        <div id="quest-progress"></div>
+      </div>
+    </div>
+
+    <!-- 右側メニュー -->
+    <div id="side-menu">
+      <button class="menu-btn" id="btn-bag" title="バッグ">🎒</button>
+      <button class="menu-btn" id="btn-shop" title="ショップ">🛍️</button>
+      <button class="menu-btn" id="btn-decor" title="もようがえ">🪄</button>
+      <button class="menu-btn" id="btn-dress" title="ドレス">👗</button>
+      <button class="menu-btn" id="btn-album" title="ずかん">📖</button>
+      <button class="menu-btn" id="btn-camera" title="しゃしん">📷</button>
+      <button class="menu-btn" id="btn-sound" title="おと">🔊</button>
+    </div>
+
+    <!-- 妖精のセリフ -->
+    <div id="fairy-bubble" class="hidden">
+      <span class="bubble-fairy">🧚</span>
+      <div id="fairy-text"></div>
+      <div class="bubble-tap">タップ ▶</div>
+    </div>
+
+    <!-- トースト -->
+    <div id="toast-area"></div>
+  </div>
+
+  <!-- デコ配置モード -->
+  <div id="decor-mode" class="hidden">
+    <div class="decor-hint">おきたいばしょに ドラッグしてね</div>
+    <div class="decor-actions">
+      <button id="decor-rotate" class="round-btn">↻</button>
+      <button id="decor-ok" class="round-btn ok">✓</button>
+      <button id="decor-cancel" class="round-btn cancel">✕</button>
+    </div>
+  </div>
+
+  <!-- 写真モード -->
+  <div id="photo-mode" class="hidden">
+    <button id="photo-shutter">📷</button>
+    <button id="photo-exit" class="round-btn cancel">✕</button>
+  </div>
+
+  <!-- モーダルパネル -->
+  <div id="panel-overlay" class="hidden">
+    <div id="panel">
+      <div id="panel-header">
+        <span id="panel-title">パネル</span>
+        <button id="panel-close" class="round-btn cancel">✕</button>
+      </div>
+      <div id="panel-tabs"></div>
+      <div id="panel-content"></div>
+    </div>
+  </div>
+
+  <!-- レベルアップ演出 -->
+  <div id="levelup-splash" class="hidden">
+    <div class="levelup-inner">
+      <div class="levelup-rainbow">🌈</div>
+      <div class="levelup-text">ガーデンレベルアップ!</div>
+      <div id="levelup-detail"></div>
+    </div>
+  </div>
+
+  <!-- 回転のおすすめはしない(縦横両対応) -->
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
