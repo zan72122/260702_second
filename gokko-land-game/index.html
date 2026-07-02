@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#ffd93b">
+<title>わくわく!ごっこタウン</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎪</text></svg>">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js",
+    "three/addons/": "./lib/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- ローディング -->
+  <div id="loading-screen">
+    <div class="loading-icon">🎪</div>
+    <div class="loading-title">わくわく!ごっこタウン</div>
+    <div class="loading-bar"><div id="loading-fill"></div></div>
+    <div class="loading-text" id="loading-text">タウンをじゅんびちゅう…</div>
+  </div>
+
+  <!-- タイトル -->
+  <div id="title-screen" class="hidden">
+    <div class="title-deco" aria-hidden="true"></div>
+    <h1 class="game-title"><span class="t-waku">わくわく!</span><span class="t-main">ごっこタウン</span></h1>
+    <p class="game-subtitle">〜 いろんなおしごと たいけんしよう! 〜</p>
+    <button id="btn-start" class="big-btn">🎈 あそぶ!</button>
+    <p class="title-hint">たて でも よこ でも あそべるよ 📱</p>
+  </div>
+
+  <!-- タウンHUD -->
+  <div id="hud-hub" class="hidden">
+    <div class="hud-top">
+      <div class="hud-left">
+        <div class="stat coin-stat"><span class="stat-icon">🪙</span><span id="coins-val">0</span></div>
+        <button class="hud-btn" id="btn-stamp" title="スタンプちょう">📖</button>
+      </div>
+      <div class="hud-right">
+        <button class="hud-btn" id="btn-sound" title="おと">🔊</button>
+      </div>
+    </div>
+    <div id="hub-hint" class="hub-hint">あそびたい おみせを タップしてね!</div>
+  </div>
+
+  <!-- ミニゲームHUD -->
+  <div id="hud-game" class="hidden">
+    <div class="hud-top">
+      <div class="hud-left">
+        <button class="hud-btn" id="btn-back" title="タウンにもどる">🏠</button>
+      </div>
+      <div id="order-bubble" class="hidden">
+        <div id="order-face">🐻</div>
+        <div id="order-text">いちごケーキ ください!</div>
+      </div>
+      <div class="hud-right">
+        <div id="game-progress"></div>
+      </div>
+    </div>
+    <div id="game-message" class="hidden"></div>
+    <div id="game-gauge" class="hidden"><div id="game-gauge-zone"></div><div id="game-gauge-fill"></div></div>
+    <div id="game-actions"></div>
+  </div>
+
+  <!-- リザルト -->
+  <div id="result-overlay" class="hidden">
+    <div id="result-card">
+      <div id="result-title">🎉 だいせいこう!</div>
+      <div id="result-stars"><span class="rstar">★</span><span class="rstar">★</span><span class="rstar">★</span></div>
+      <div id="result-body"></div>
+      <div id="result-stamp" class="hidden">スタンプ ゲット!<span id="result-stamp-icon">🍰</span></div>
+      <div class="result-btns">
+        <button id="result-retry" class="big-btn small secondary">🔁 もういちど</button>
+        <button id="result-home" class="big-btn small">🏠 タウンへ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- スタンプちょう / コレクション -->
+  <div id="panel-overlay" class="hidden">
+    <div id="panel">
+      <div id="panel-header">
+        <span id="panel-title">📖 スタンプちょう</span>
+        <button id="panel-close">✕</button>
+      </div>
+      <div id="panel-tabs">
+        <button class="panel-tab active" data-tab="stamps">スタンプ</button>
+        <button class="panel-tab" data-tab="hats">ぼうし</button>
+      </div>
+      <div id="panel-body"></div>
+    </div>
+  </div>
+
+  <!-- ガチャ -->
+  <div id="gacha-overlay" class="hidden">
+    <div id="gacha-card">
+      <div id="gacha-title">🎁 ぼうしガチャ</div>
+      <div id="gacha-machine">
+        <div id="gacha-dome">🔮</div>
+        <div id="gacha-capsule" class="hidden">⚪</div>
+        <div id="gacha-prize" class="hidden">🎩</div>
+      </div>
+      <div id="gacha-msg">コイン 20まい で 1かい まわせるよ</div>
+      <div class="result-btns">
+        <button id="gacha-spin" class="big-btn small">🪙 20 まわす!</button>
+        <button id="gacha-close" class="big-btn small secondary">とじる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-area"></div>
+  <div id="fader"></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
