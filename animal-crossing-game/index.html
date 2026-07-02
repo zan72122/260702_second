@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7ec850">
+<title>どうぶつの島 〜まったりアイランド〜</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- ===== タイトル画面 ===== -->
+<div id="title-screen">
+  <div class="title-sky">
+    <div class="title-cloud c1"></div>
+    <div class="title-cloud c2"></div>
+    <div class="title-cloud c3"></div>
+  </div>
+  <div class="title-inner">
+    <div class="title-leaf">🍃</div>
+    <h1 class="title-logo"><span>どうぶつの島</span><small>〜まったりアイランド〜</small></h1>
+    <div class="title-form">
+      <label for="player-name">きみの なまえ</label>
+      <input id="player-name" type="text" maxlength="8" placeholder="たびびと" autocomplete="off">
+      <div class="shirt-pick" id="shirt-pick">
+        <span class="shirt-label">ふくの いろ</span>
+        <div class="shirt-row">
+          <button class="shirt-btn selected" data-color="#e8554d" style="background:#e8554d"></button>
+          <button class="shirt-btn" data-color="#4d9de8" style="background:#4d9de8"></button>
+          <button class="shirt-btn" data-color="#f2b53a" style="background:#f2b53a"></button>
+          <button class="shirt-btn" data-color="#7bc95e" style="background:#7bc95e"></button>
+          <button class="shirt-btn" data-color="#b06ee8" style="background:#b06ee8"></button>
+          <button class="shirt-btn" data-color="#f28ab5" style="background:#f28ab5"></button>
+        </div>
+      </div>
+    </div>
+    <button id="start-btn">🏝️ 島へ しゅっぱつ！</button>
+    <p class="title-hint">イヤホン・サウンドONがおすすめ 🎵</p>
+    <p id="continue-note" class="continue-note" hidden>まえの セーブデータから つづきます</p>
+  </div>
+</div>
+
+<!-- ===== ローディング ===== -->
+<div id="loading" hidden><div class="loading-leaf">🍃</div><p>島へ むかっています…</p></div>
+
+<!-- ===== HUD ===== -->
+<div id="hud" hidden>
+  <div class="hud-top">
+    <div class="hud-chip" id="bells-chip"><span class="bell-icon">🔔</span><span id="bells-num">0</span></div>
+    <div class="hud-chip" id="clock-chip"><span id="clock-date">7/1</span><span id="clock-time">00:00</span><span id="weather-icon">☀️</span></div>
+    <div class="hud-top-right">
+      <button class="hud-btn" id="btn-pocket" aria-label="ポケット">🎒</button>
+      <button class="hud-btn" id="btn-zukan" aria-label="ずかん">📖</button>
+      <button class="hud-btn" id="btn-map" aria-label="しま">🗺️</button>
+      <button class="hud-btn" id="btn-sound" aria-label="サウンド">🔊</button>
+    </div>
+  </div>
+
+  <div id="quest-chip" hidden><span id="quest-text"></span></div>
+
+  <div id="joystick"><div id="joy-base"><div id="joy-stick"></div></div></div>
+
+  <div class="hud-actions">
+    <button id="tool-btn" aria-label="どうぐ">✋</button>
+    <button id="action-btn" hidden><span id="action-label">はなす</span></button>
+  </div>
+
+  <div id="tool-wheel" hidden>
+    <button class="tool-item" data-tool="hand"><span>✋</span><small>すで</small></button>
+    <button class="tool-item" data-tool="rod"><span>🎣</span><small>つりざお</small></button>
+    <button class="tool-item" data-tool="net"><span>🦋</span><small>あみ</small></button>
+    <button class="tool-item" data-tool="shovel"><span>⛏️</span><small>スコップ</small></button>
+    <button class="tool-item" data-tool="can"><span>🚿</span><small>じょうろ</small></button>
+  </div>
+</div>
+
+<!-- ===== 会話ウィンドウ ===== -->
+<div id="dialog" hidden>
+  <div class="dialog-box">
+    <div class="dialog-name" id="dialog-name">？？？</div>
+    <p class="dialog-text" id="dialog-text"></p>
+    <div class="dialog-next" id="dialog-next">▼</div>
+    <div class="dialog-choices" id="dialog-choices" hidden></div>
+  </div>
+</div>
+
+<!-- ===== キャッチ演出カード ===== -->
+<div id="catch-card" hidden>
+  <div class="catch-inner">
+    <div class="catch-burst"></div>
+    <div class="catch-icon" id="catch-icon">🐟</div>
+    <p class="catch-title" id="catch-title">つかまえた！</p>
+    <p class="catch-name" id="catch-name"></p>
+    <p class="catch-flavor" id="catch-flavor"></p>
+  </div>
+</div>
+
+<!-- ===== 汎用パネル（ポケット/ずかん/お店/マップ） ===== -->
+<div id="panel" hidden>
+  <div class="panel-box">
+    <div class="panel-head">
+      <h2 id="panel-title">ポケット</h2>
+      <button id="panel-close">✕</button>
+    </div>
+    <div class="panel-tabs" id="panel-tabs"></div>
+    <div class="panel-body" id="panel-body"></div>
+    <div class="panel-foot" id="panel-foot"></div>
+  </div>
+</div>
+
+<!-- ===== トースト通知 ===== -->
+<div id="toast-wrap"></div>
+
+<!-- ===== 画面回転などの演出用 ===== -->
+<div id="flash"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
