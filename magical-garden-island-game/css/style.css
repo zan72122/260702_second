@@ -1,0 +1,376 @@
+/* ================================================================
+   プリンセス マジカルガーデン 〜まほうの花の島〜
+   iPhone / iPad 縦横両対応 UI
+================================================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --pink: #ff7eb9;
+  --pink-deep: #f04f9c;
+  --gold: #ffd166;
+  --purple: #b388ff;
+  --cream: #fff6fa;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #2a1b4e;
+  font-family: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "Rounded Mplus 1c", "M PLUS Rounded 1c", "Yu Gothic", sans-serif;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  position: fixed;
+}
+
+#app { width: 100%; height: 100%; position: relative; }
+
+#game-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+}
+
+.hidden { display: none !important; }
+
+/* ---------------- ローディング ---------------- */
+#loading-screen {
+  position: absolute; inset: 0; z-index: 100;
+  background: linear-gradient(180deg, #ffd9ec 0%, #ffb3d9 45%, #c7a4ff 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px;
+}
+.loading-flower { font-size: 64px; animation: spinbounce 1.6s ease-in-out infinite; }
+@keyframes spinbounce {
+  0%,100% { transform: translateY(0) rotate(-8deg) scale(1); }
+  50% { transform: translateY(-16px) rotate(8deg) scale(1.12); }
+}
+.loading-text { color: #a13a77; font-size: 17px; font-weight: bold; letter-spacing: 2px; }
+.loading-bar {
+  width: min(60vw, 280px); height: 14px; border-radius: 7px;
+  background: rgba(255,255,255,.6); overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(160,60,120,.25);
+}
+#loading-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #ff7eb9, #ffd166, #b388ff);
+  border-radius: 7px; transition: width .25s ease;
+}
+
+/* ---------------- タイトル ---------------- */
+.screen {
+  position: absolute; inset: 0; z-index: 90;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+#title-screen { background: transparent; padding: calc(var(--safe-top) + 10px) 16px calc(var(--safe-bottom) + 16px); }
+.game-title {
+  text-align: center; display: flex; flex-direction: column; gap: 4px;
+  animation: titlefloat 3.2s ease-in-out infinite;
+  margin-bottom: min(7vh, 52px);
+}
+@keyframes titlefloat { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-10px);} }
+.title-small {
+  font-size: clamp(16px, 4vw, 26px); color: #fff;
+  text-shadow: 0 2px 8px rgba(240,79,156,.8);
+}
+.title-main {
+  font-size: clamp(38px, 10vw, 76px); font-weight: 900; letter-spacing: 2px;
+  background: linear-gradient(180deg, #fff 15%, #ffe3f2 40%, #ffb0d8 75%, #ff8ac2 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 3px 0 #d64b96) drop-shadow(0 7px 14px rgba(90,20,80,.55));
+}
+.title-sub {
+  font-size: clamp(15px, 4vw, 26px); color: #fff0f8; font-weight: bold;
+  text-shadow: 0 2px 6px rgba(120,40,110,.7); letter-spacing: 3px;
+}
+.title-buttons { display: flex; flex-direction: column; gap: 14px; align-items: center; }
+.big-btn {
+  border: none; cursor: pointer;
+  font-family: inherit; font-weight: 900;
+  font-size: clamp(18px, 4.6vw, 26px);
+  color: #fff; padding: 16px 44px; border-radius: 999px;
+  letter-spacing: 2px;
+  box-shadow: 0 6px 0 rgba(0,0,0,.18), 0 10px 24px rgba(60,10,60,.35), inset 0 2px 2px rgba(255,255,255,.55);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.big-btn:active { transform: translateY(4px) scale(.97); box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+.big-btn.gold { background: linear-gradient(180deg, #ffe08a, #ffb347); text-shadow: 0 2px 3px rgba(160,90,0,.45); }
+.big-btn.pink { background: linear-gradient(180deg, #ff9ecb, #f0569f); text-shadow: 0 2px 3px rgba(150,20,90,.45); }
+.title-hint {
+  margin-top: min(5vh, 36px); color: rgba(255,255,255,.9); font-size: 13px;
+  text-shadow: 0 1px 4px rgba(90,30,90,.6);
+}
+.title-sparkles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.title-sparkles i {
+  position: absolute; font-style: normal;
+  animation: sparklefall linear infinite;
+  opacity: 0;
+}
+@keyframes sparklefall {
+  0% { transform: translateY(-8vh) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  90% { opacity: .9; }
+  100% { transform: translateY(108vh) rotate(360deg); opacity: 0; }
+}
+
+/* ---------------- HUD ---------------- */
+#hud { position: absolute; inset: 0; z-index: 40; pointer-events: none; }
+
+#top-bar {
+  position: absolute;
+  top: calc(var(--safe-top) + 8px);
+  left: calc(var(--safe-left) + 8px);
+  right: calc(var(--safe-right) + 8px);
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.stat-chip {
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.88);
+  border: 2px solid #ffc7e2;
+  border-radius: 999px; padding: 5px 12px;
+  font-weight: 900; font-size: 15px; color: #b04585;
+  box-shadow: 0 3px 8px rgba(120,40,100,.22);
+}
+.chip-icon { font-size: 15px; }
+.level-chip { display: flex; flex-direction: row; gap: 7px; }
+.level-bar {
+  width: 54px; height: 8px; border-radius: 4px;
+  background: #ffe2f0; overflow: hidden;
+}
+#level-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#ffb347,#ff7eb9,#b388ff); transition: width .4s ease; }
+#chip-clock { padding: 5px 10px; }
+
+#quest-banner {
+  position: absolute;
+  top: calc(var(--safe-top) + 54px);
+  left: calc(var(--safe-left) + 8px);
+  max-width: min(72vw, 340px);
+  pointer-events: auto;
+  display: flex; gap: 8px; align-items: center;
+  background: linear-gradient(180deg, rgba(255,244,250,.94), rgba(255,224,240,.94));
+  border: 2px solid #ffaed6; border-radius: 16px;
+  padding: 7px 12px;
+  box-shadow: 0 4px 10px rgba(140,40,100,.25);
+}
+.quest-fairy { font-size: 22px; }
+#quest-title { font-size: 13px; font-weight: 900; color: #a13a77; line-height: 1.25; }
+#quest-progress { font-size: 11px; color: #d060a0; font-weight: bold; margin-top: 1px; }
+
+#side-menu {
+  position: absolute;
+  right: calc(var(--safe-right) + 8px);
+  top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 9px;
+}
+.menu-btn {
+  pointer-events: auto;
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 2.5px solid #fff;
+  background: linear-gradient(180deg, #ff9ecb, #f0569f);
+  font-size: 24px; cursor: pointer;
+  box-shadow: 0 4px 10px rgba(140,30,100,.35), inset 0 2px 3px rgba(255,255,255,.5);
+  transition: transform .1s ease;
+}
+.menu-btn:active { transform: scale(.9); }
+
+/* 縦画面が低い(横持ち)ときはメニューを小さく */
+@media (max-height: 480px) {
+  .menu-btn { width: 42px; height: 42px; font-size: 19px; }
+  #side-menu { gap: 6px; }
+}
+
+/* ---------------- 妖精バブル ---------------- */
+#fairy-bubble {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--safe-bottom) + 18px);
+  width: min(88vw, 460px);
+  pointer-events: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,236,246,.96));
+  border: 3px solid #ffaed6; border-radius: 20px;
+  padding: 13px 16px 22px;
+  display: flex; gap: 10px; align-items: flex-start;
+  box-shadow: 0 8px 22px rgba(120,30,100,.35);
+  animation: bubblein .25s ease;
+  z-index: 45;
+}
+@keyframes bubblein { from { transform: translateX(-50%) translateY(16px); opacity: 0; } }
+.bubble-fairy { font-size: 30px; animation: fairybob 1.6s ease-in-out infinite; }
+@keyframes fairybob { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-5px);} }
+#fairy-text { font-size: 15px; font-weight: bold; color: #8e3a6e; line-height: 1.55; }
+.bubble-tap {
+  position: absolute; right: 14px; bottom: 6px;
+  font-size: 10px; color: #e389bb; font-weight: bold;
+  animation: taphint 1s ease-in-out infinite;
+}
+@keyframes taphint { 0%,100% { opacity: .55;} 50% { opacity: 1;} }
+
+/* ---------------- トースト ---------------- */
+#toast-area {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  top: calc(var(--safe-top) + 110px);
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+  pointer-events: none; width: 100%;
+}
+.toast {
+  background: rgba(80,25,70,.82); color: #fff;
+  font-size: 14px; font-weight: bold;
+  padding: 8px 20px; border-radius: 999px;
+  border: 1.5px solid rgba(255,180,220,.65);
+  animation: toastin .3s ease, toastout .4s ease 2.2s forwards;
+  max-width: 86vw; text-align: center;
+}
+@keyframes toastin { from { transform: translateY(-14px) scale(.85); opacity: 0; } }
+@keyframes toastout { to { transform: translateY(-8px); opacity: 0; } }
+
+/* ---------------- デコ配置モード ---------------- */
+#decor-mode { position: absolute; inset: 0; z-index: 50; pointer-events: none; }
+.decor-hint {
+  position: absolute; top: calc(var(--safe-top) + 12px); left: 50%; transform: translateX(-50%);
+  background: rgba(80,25,70,.85); color: #fff; font-size: 13px; font-weight: bold;
+  padding: 8px 18px; border-radius: 999px; white-space: nowrap;
+}
+.decor-actions {
+  position: absolute; bottom: calc(var(--safe-bottom) + 22px);
+  left: 50%; transform: translateX(-50%);
+  display: flex; gap: 18px;
+}
+.round-btn {
+  pointer-events: auto;
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 2.5px solid #fff; font-size: 24px; font-weight: 900;
+  cursor: pointer; color: #fff;
+  background: linear-gradient(180deg,#b388ff,#7c5cd6);
+  box-shadow: 0 4px 12px rgba(60,20,90,.4), inset 0 2px 3px rgba(255,255,255,.5);
+}
+.round-btn:active { transform: scale(.9); }
+.round-btn.ok { background: linear-gradient(180deg,#7de8a2,#2fb865); }
+.round-btn.cancel { background: linear-gradient(180deg,#ff9d9d,#e05555); }
+
+/* ---------------- 写真モード ---------------- */
+#photo-mode { position: absolute; inset: 0; z-index: 50; pointer-events: none; }
+#photo-shutter {
+  pointer-events: auto;
+  position: absolute; bottom: calc(var(--safe-bottom) + 22px); left: 50%; transform: translateX(-50%);
+  width: 74px; height: 74px; border-radius: 50%;
+  font-size: 32px; border: 4px solid #fff; cursor: pointer;
+  background: linear-gradient(180deg,#ff9ecb,#f0569f);
+  box-shadow: 0 6px 16px rgba(120,20,90,.5);
+}
+#photo-exit { position: absolute; top: calc(var(--safe-top) + 14px); right: calc(var(--safe-right) + 14px); }
+
+/* ---------------- パネル ---------------- */
+#panel-overlay {
+  position: absolute; inset: 0; z-index: 60;
+  background: rgba(60,20,60,.45);
+  display: flex; align-items: center; justify-content: center;
+  padding: calc(var(--safe-top) + 12px) calc(var(--safe-right) + 12px) calc(var(--safe-bottom) + 12px) calc(var(--safe-left) + 12px);
+  animation: fadein .2s ease;
+}
+@keyframes fadein { from { opacity: 0; } }
+#panel {
+  width: min(94vw, 560px);
+  max-height: min(86vh, 640px);
+  background: linear-gradient(180deg, #fff8fc, #ffeaf4);
+  border: 3px solid #ffaed6; border-radius: 24px;
+  display: flex; flex-direction: column;
+  box-shadow: 0 14px 40px rgba(70,15,60,.5);
+  animation: panelin .25s cubic-bezier(.2,1.4,.5,1);
+  overflow: hidden;
+}
+@keyframes panelin { from { transform: translateY(30px) scale(.92); opacity: 0; } }
+#panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 8px 20px;
+}
+#panel-title { font-size: 19px; font-weight: 900; color: #b04585; letter-spacing: 1px; }
+#panel-header .round-btn { width: 40px; height: 40px; font-size: 17px; }
+#panel-tabs { display: flex; gap: 6px; padding: 0 14px 8px; flex-wrap: wrap; }
+#panel-tabs:empty { display: none; }
+.tab-btn {
+  border: 2px solid #ffb9dc; background: #fff; color: #d060a0;
+  border-radius: 999px; padding: 6px 15px; font-family: inherit;
+  font-size: 13px; font-weight: 900; cursor: pointer;
+}
+.tab-btn.active { background: linear-gradient(180deg,#ff9ecb,#f0569f); color: #fff; border-color: #fff; }
+#panel-content {
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 6px 14px calc(14px + var(--safe-bottom));
+  touch-action: pan-y;
+}
+
+/* パネル内の共通カード */
+.item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.item-card {
+  background: #fff; border: 2px solid #ffd3e8; border-radius: 16px;
+  padding: 10px; text-align: center;
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+  box-shadow: 0 2px 6px rgba(180,70,130,.12);
+}
+.item-card.locked { filter: grayscale(.8); opacity: .62; }
+.item-icon { font-size: 34px; line-height: 1.1; }
+.item-name { font-size: 13px; font-weight: 900; color: #9c4079; }
+.item-desc { font-size: 10.5px; color: #c47ba5; line-height: 1.35; }
+.item-count { font-size: 11px; font-weight: bold; color: #7c5cd6; }
+.card-btn {
+  border: none; border-radius: 999px; padding: 7px 16px;
+  font-family: inherit; font-size: 13px; font-weight: 900; color: #fff;
+  background: linear-gradient(180deg,#ffb066,#f5813c); cursor: pointer;
+  box-shadow: 0 3px 0 rgba(150,70,0,.3);
+  margin-top: 2px;
+}
+.card-btn.pink { background: linear-gradient(180deg,#ff9ecb,#f0569f); box-shadow: 0 3px 0 rgba(150,20,90,.3); }
+.card-btn.purple { background: linear-gradient(180deg,#c9a6ff,#8e63e8); box-shadow: 0 3px 0 rgba(70,30,140,.3); }
+.card-btn:disabled { filter: grayscale(.7); opacity: .55; }
+.card-btn:active { transform: translateY(2px); box-shadow: none; }
+
+/* ドレスアップ swatch */
+.swatch-row { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 0 12px; }
+.swatch {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 3px solid #fff; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(150,60,110,.3);
+  font-size: 21px; display: flex; align-items: center; justify-content: center;
+}
+.swatch.active { outline: 3.5px solid #ffd166; transform: scale(1.1); }
+.swatch.locked { filter: grayscale(.85); opacity: .5; }
+.section-label { font-size: 14px; font-weight: 900; color: #b04585; padding: 8px 2px 4px; }
+
+/* ずかんカード */
+.album-card.unknown .item-icon { filter: brightness(0) opacity(.25); }
+
+/* クエスト完了バッジ */
+.quest-done { color: #2fb865; font-weight: 900; }
+
+/* ---------------- レベルアップ ---------------- */
+#levelup-splash {
+  position: absolute; inset: 0; z-index: 70;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(circle, rgba(255,230,150,.35), rgba(255,120,190,.25) 60%, transparent);
+  pointer-events: none;
+}
+.levelup-inner { text-align: center; animation: levelpop .6s cubic-bezier(.2,1.6,.4,1); }
+@keyframes levelpop { from { transform: scale(.3); opacity: 0; } }
+.levelup-rainbow { font-size: 84px; animation: fairybob 1.2s ease-in-out infinite; }
+.levelup-text {
+  font-size: clamp(28px, 7vw, 46px); font-weight: 900;
+  background: linear-gradient(90deg,#ff5f9e,#ffb347,#7de8a2,#66c7ff,#b388ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 5px 10px rgba(120,30,100,.5));
+}
+#levelup-detail {
+  margin-top: 10px; font-size: 16px; font-weight: 900; color: #fff;
+  text-shadow: 0 2px 6px rgba(150,40,110,.8);
+}
+
+/* iPad など大画面 */
+@media (min-width: 768px) {
+  .stat-chip { font-size: 17px; padding: 7px 16px; }
+  #quest-title { font-size: 15px; }
+  .menu-btn { width: 60px; height: 60px; font-size: 28px; }
+  #fairy-text { font-size: 17px; }
+}
