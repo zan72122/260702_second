@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c1a33">
+<title>てのひら水路ラボ 🖐💧 手が水路になる実験あそび</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖐</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <div id="stage">
+    <canvas id="back"></canvas>
+    <canvas id="fluid"></canvas>
+    <canvas id="over"></canvas>
+  </div>
+
+  <!-- 上のボタン -->
+  <div id="topbar">
+    <button id="btnCamera" class="iconbtn" aria-label="カメラ/ゆび切りかえ">📷</button>
+    <div class="spacer"></div>
+    <button id="btnReset" class="iconbtn" aria-label="やりなおす">↺</button>
+    <button id="btnSound" class="iconbtn" aria-label="サウンド">🔊</button>
+  </div>
+
+  <!-- じゃぐちトレイ (下) -->
+  <div id="tray"></div>
+
+  <!-- ロード中のコップ -->
+  <div id="loadCup" hidden>
+    <div id="loadGlass"><div id="loadWater"></div></div>
+    <div id="loadLabel">じゅんびちゅう…</div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- はじめの画面 -->
+  <div id="boot">
+    <div id="bootInner">
+      <div id="bootEmoji"><span class="h">🖐</span><span class="d">💧</span></div>
+      <h1>てのひら水路ラボ</h1>
+      <p>カメラに てを うつすと<br>てが みずの みちに なるよ!</p>
+      <button id="btnStart">▶ はじめる</button>
+      <p id="bootNote">カメラを つかいます (つかえなくても ゆびで あそべるよ)</p>
+    </div>
+  </div>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
