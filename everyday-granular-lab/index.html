@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#3a2d1e">
+<title>まいにち粒つぶラボ 🏖️ 日常の粒状物シミュレーター</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏳</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ホーム画面 -->
+  <div id="home">
+    <header id="homeHeader">
+      <h1><span class="drop">⏳</span> まいにち粒つぶラボ</h1>
+      <p>砂・米・雪・ビーズ…日常の「つぶつぶ」を さわって あそぼう!</p>
+    </header>
+    <div id="cards"></div>
+    <footer id="homeFooter">
+      <p>🏖️ 何千個もの粒が本物の粒状体力学 (摩擦・安息角・付着) でうごくよ</p>
+      <p>📱 iPhone / iPad の たて・よこ、どちらでも遊べます</p>
+    </footer>
+  </div>
+
+  <!-- プレイ画面 -->
+  <div id="play" hidden>
+    <div id="stage">
+      <canvas id="back"></canvas>
+      <canvas id="grain"></canvas>
+      <canvas id="over"></canvas>
+    </div>
+    <div id="topbar">
+      <button id="btnBack" class="iconbtn" aria-label="もどる">←</button>
+      <div id="titleWrap">
+        <div id="sceneTitle"></div>
+        <div id="progressWrap"><div id="progressBar"></div></div>
+      </div>
+      <button id="btnReset" class="iconbtn" aria-label="やりなおす">↺</button>
+      <button id="btnTilt" class="iconbtn" aria-label="傾きセンサー">📱</button>
+      <button id="btnSound" class="iconbtn" aria-label="サウンド">🔊</button>
+    </div>
+    <div id="hint"></div>
+    <div id="toolbar"></div>
+    <div id="toast"></div>
+  </div>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
