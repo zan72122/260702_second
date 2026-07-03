@@ -1,0 +1,15 @@
+/* やわらかラボ — base layout (UI tray styles live at the bottom, owned by ui.js spec) */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #ffeed6;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  font-family: 'Hiragino Maru Gothic ProN', 'BIZ UDGothic', 'Rounded Mplus 1c', sans-serif;
+}
+#stage { position: fixed; inset: 0; }
+#stage canvas { position: absolute; inset: 0; display: block; }
+#ui { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+#ui > * { pointer-events: auto; }

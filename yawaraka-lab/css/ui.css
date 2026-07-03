@@ -1,0 +1,185 @@
+/* やわらかラボ — UI layer styling (material tray, tool tray, sub-tray).
+ * #ui itself is `position:fixed; inset:0; pointer-events:none;` (style.css);
+ * direct children get pointer-events:auto there. Everything here is purely
+ * visual/interaction chrome — no game logic. */
+
+:root {
+  --yl-mat-size: 60px;
+  --yl-mat-gap: 10px;
+  --yl-tool-size: 56px;
+  --yl-reset-size: 56px;
+  --yl-sound-size: 48px;
+  --yl-sub-size: 48px;
+  --yl-tool-gap: 12px;
+}
+
+/* ---- shared round button ------------------------------------------------ */
+.yl-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: #fffdf6;
+  box-shadow: 0 3px 8px rgba(180, 120, 70, 0.25);
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+  flex: none;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+.yl-btn:active { transform: scale(0.9); }
+.yl-btn .yl-icon,
+.yl-btn svg {
+  width: 68%;
+  height: 68%;
+  display: block;
+  pointer-events: none;
+}
+.yl-btn.yl-selected {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 4px 12px rgba(180, 120, 70, 0.32);
+}
+
+/* ================================================================
+   Material tray — pinned to the bottom edge, horizontally scrollable
+   ================================================================ */
+.yl-materials {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  padding-top: 8px;
+  display: flex;
+  justify-content: flex-start; /* centering + overflow clips the start edge */
+}
+.yl-materials-inner {
+  display: flex;
+  align-items: center;
+  margin: 0 auto; /* centers when it fits, scrolls from the start when it overflows */
+  gap: var(--yl-mat-gap);
+  padding: 6px calc(env(safe-area-inset-left, 0px) + 14px) 6px calc(env(safe-area-inset-right, 0px) + 14px);
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100vw;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.yl-materials-inner::-webkit-scrollbar { display: none; }
+
+.yl-mat-btn {
+  width: var(--yl-mat-size);
+  height: var(--yl-mat-size);
+}
+.yl-mat-btn.yl-selected {
+  transform: scale(1.25);
+}
+.yl-mat-btn.yl-selected:active { transform: scale(1.1); }
+
+.yl-emoji-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  font-size: 15px;
+  line-height: 1;
+  background: #fffdf6;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(180, 120, 70, 0.25);
+}
+
+/* first-6-seconds "you can scroll me" hint, CSS-only, removed on interaction */
+.yl-materials.yl-hint .yl-materials-inner {
+  animation: yl-wiggle 1.3s ease-in-out 3;
+}
+@keyframes yl-wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  55% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+}
+
+/* ================================================================
+   Tool tray — pinned to the right edge, vertically centered
+   ================================================================ */
+.yl-tools {
+  position: fixed;
+  right: calc(env(safe-area-inset-right, 0px) + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--yl-tool-gap);
+}
+
+.yl-tool-btn { width: var(--yl-tool-size); height: var(--yl-tool-size); }
+.yl-tool-btn.yl-selected { transform: scale(1.22); }
+.yl-tool-btn.yl-selected:active { transform: scale(1.08); }
+
+.yl-divider {
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 1px 2px rgba(180, 120, 70, 0.2);
+  margin: 2px 0;
+}
+
+.yl-reset-btn { width: var(--yl-reset-size); height: var(--yl-reset-size); }
+.yl-reset-btn:active { transform: scale(0.85) rotate(-18deg); }
+
+.yl-sound-btn { width: var(--yl-sound-size); height: var(--yl-sound-size); }
+
+/* ---- sub-tray: pops out to the LEFT of the tool tray, next to the
+   currently active tool button (positioned via JS: top = button center) ---- */
+.yl-subtray {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 0;
+  transform: translateY(-50%);
+  display: none;
+  flex-direction: row-reverse; /* nearest sub-button sits closest to the tool */
+  align-items: center;
+  gap: 8px;
+}
+.yl-subtray.yl-subtray-visible { display: flex; }
+
+.yl-sub-btn {
+  width: var(--yl-sub-size);
+  height: var(--yl-sub-size);
+  opacity: 0;
+  animation: yl-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.yl-sub-btn.yl-selected { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.95), 0 4px 12px rgba(180, 120, 70, 0.32); transform: scale(1.12); }
+.yl-sub-btn.yl-selected:active { transform: scale(1); }
+
+@keyframes yl-pop {
+  0% { opacity: 0; transform: scale(0); }
+  60% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ================================================================
+   iPhone landscape: shrink everything, tighten gaps so nothing overlaps
+   ================================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  :root {
+    --yl-mat-size: 52px;
+    --yl-mat-gap: 8px;
+    --yl-tool-size: 48px;
+    --yl-reset-size: 48px;
+    --yl-sound-size: 42px;
+    --yl-sub-size: 42px;
+    --yl-tool-gap: 8px;
+  }
+  .yl-materials { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); padding-top: 4px; }
+  .yl-materials-inner { padding: 4px calc(env(safe-area-inset-left, 0px) + 10px) 4px calc(env(safe-area-inset-right, 0px) + 10px); }
+  .yl-tools { right: calc(env(safe-area-inset-right, 0px) + 6px); }
+}
