@@ -10,7 +10,7 @@ export default {
   desc: 'パッパッ… まんべんなく ふれるかな',
   goal: '🎯 白身ぜんたいに 塩をふろう (かけすぎ注意!)',
   clearMsg: 'ちょうどいい塩かげん!',
-  maxParticles: 900,
+  maxParticles: 1500,
   rattlePitch: 1.8,
   rattle: 0.5,
 
@@ -21,12 +21,12 @@ export default {
     d.overShown = false;
     d.pepper = false;
     ctx.sim.defineMaterial(0, { // 塩
-      r: 0.55, rJit: 0.06, mu: 0.6, vmax: 55,
+      r: 0.45, rJit: 0.05, mu: 0.8, vmax: 40, interlock: 3, flutter: 10,
       sprite: SPRITES.SALT,
       colors: [[1, 1, 1], [0.96, 0.97, 1]],
     });
     ctx.sim.defineMaterial(1, { // こしょう
-      r: 0.5, rJit: 0.08, mu: 0.6, vmax: 55,
+      r: 0.42, rJit: 0.06, mu: 0.8, vmax: 38, interlock: 3, flutter: 14,
       sprite: SPRITES.SAND,
       colors: [[0.25, 0.2, 0.16], [0.35, 0.28, 0.2], [0.2, 0.16, 0.12]],
     });

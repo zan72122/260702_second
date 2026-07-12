@@ -10,7 +10,7 @@ export default {
   desc: 'サラサラ…10びょう ぴったり?',
   clearMsg: 'じかんはかり名人!',
   goal: '🎯 ひっくり返して 砂をぜんぶ落としきろう!',
-  maxParticles: 1500,
+  maxParticles: 3400,
   rattlePitch: 1.4,
 
   init(ctx) {
@@ -20,7 +20,7 @@ export default {
     d.running = false;
     d.doneShown = false;
     ctx.sim.defineMaterial(0, {
-      r: 0.72, rJit: 0.07, mu: 0.5, vmax: 70,
+      r: 0.55, rJit: 0.06, mu: 0.55, vmax: 55, interlock: 2,
       sprite: SPRITES.SAND,
       colors: [[0.98, 0.75, 0.45], [0.95, 0.68, 0.38], [1, 0.82, 0.55]],
     });

@@ -262,7 +262,7 @@ export class GrainRenderer {
       gl.enableVertexAttribArray(0);
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       // インスタンス
-      this.maxI = 5000;
+      this.maxI = 9200;
       this.iData = new Float32Array(this.maxI * 8);
       this.iBuf = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, this.iBuf);
@@ -311,11 +311,16 @@ export class GrainRenderer {
     const n = Math.min(sim.n, this.maxI);
     const d = this.iData;
     const mats = sim.mats;
+    const PK = sim.pack;
     for (let i = 0; i < n; i++) {
       const o = i * 8;
       d[o] = sim.x[i]; d[o + 1] = sim.y[i];
       d[o + 2] = sim.r[i]; d[o + 3] = sim.ang[i];
-      d[o + 4] = sim.cr[i]; d[o + 5] = sim.cg[i]; d[o + 6] = sim.cb[i];
+      // 締固めで青白い氷っぽさに
+      const p = PK[i];
+      d[o + 4] = sim.cr[i] * (1 - p * 0.16);
+      d[o + 5] = sim.cg[i] * (1 - p * 0.07);
+      d[o + 6] = sim.cb[i];
       d[o + 7] = sim.sprite[i];
     }
     // stretch テーブル (素材の縦横比をスプライト ID 経由で)

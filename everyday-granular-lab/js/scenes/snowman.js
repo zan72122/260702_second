@@ -10,7 +10,7 @@ export default {
   desc: 'ころころ転がすと 雪玉が育つ',
   goal: '🎯 雪玉を2つ育てて重ねて、顔をつけよう!',
   clearMsg: 'かわいい雪だるまの完成!',
-  maxParticles: 2600,
+  maxParticles: 5500,
   rattle: 0.25,
 
   init(ctx) {
@@ -20,7 +20,8 @@ export default {
     d.decorated = false;
     d.snowT = 0;
     ctx.sim.defineMaterial(0, { // 雪
-      r: 1.2, rJit: 0.16, mu: 1.0, coh: 0.55, vmax: 42,
+      r: 0.8, rJit: 0.1, mu: 1.0, coh: 0.5, vmax: 40,
+      interlock: 4, packable: true, flutter: 30,
       sprite: SPRITES.SNOW,
       colors: [[1, 1, 1], [0.96, 0.98, 1]],
     });
@@ -97,7 +98,7 @@ export default {
     const { W, H } = ctx;
     // 雪がしんしんと降る
     d.snowT += dt;
-    if (d.snowT > 0.12 && s.n < s.max - 10) {
+    if (d.snowT > 0.07 && s.n < s.max - 10) {
       d.snowT = 0;
       s.emit(rand(3, W - 3), -4, rand(-4, 4), 18, 0);
     }
@@ -123,7 +124,7 @@ export default {
         grown++;
       });
       if (grown > 0) {
-        so.r = Math.min(15, Math.sqrt(so.r * so.r + grown * 0.8));
+        so.r = Math.min(15, Math.sqrt(so.r * so.r + grown * 0.6));
         so.mass = so.r * so.r;
         if (Math.random() < dt * 20) ctx.fx.addSpark(so.x + rand(-so.r, so.r), so.y + rand(-so.r, so.r), '#fff');
       }
@@ -134,12 +135,14 @@ export default {
       if (!so.data.snowball || so === d.held) continue;
       if (so.data.burst) {
         s.solids.splice(k, 1);
-        const nb = Math.min(60, (so.r * so.r) | 0);
+        const nb = Math.min(150, (so.r * so.r * 1.6) | 0);
         for (let i = 0; i < nb; i++) {
           const a = rand(TAU);
           const rr2 = rand(0, so.r * 0.8);
-          ctx.pour(so.x + Math.cos(a) * rr2, so.y + Math.sin(a) * rr2, rand(-40, 40), rand(-50, 10), 0);
+          const j = s.emit(so.x + Math.cos(a) * rr2, so.y + Math.sin(a) * rr2, rand(-40, 40), rand(-50, 10), 0);
+          if (j >= 0) s.pack[j] = 0.45; // 固めた雪玉の破片はしまっている
         }
+        for (let i = 0; i < 6; i++) ctx.fx.addDust(so.x + rand(-6, 6), so.y + rand(-6, 6), rand(2.5, 4.5), '238,243,252');
         ctx.sfx.splash(0.7);
         ctx.toast('☃️ パフッ!くだけちゃった');
         continue;

@@ -21,7 +21,7 @@ export default {
     d.stableT = 0;
     d.spillShown = false;
     ctx.sim.defineMaterial(0, { // リングシリアル
-      r: 1.65, rJit: 0.18, mu: 0.5, bounce: 0.15, vmax: 110,
+      r: 1.65, rJit: 0.18, mu: 0.5, bounce: 0.15, vmax: 110, interlock: 0.6, sleepK: 0.8,
       sprite: SPRITES.RING, colors: [[1, 1, 1], [1, 0.92, 0.8], [0.95, 0.82, 0.66]],
     });
     ctx.sim.defineMaterial(1, { // レーズン

@@ -11,16 +11,16 @@ export default {
   desc: 'ザーッと入れて 目盛りピッタリ!',
   goal: '🎯 釜の目盛りぴったりまで お米を入れよう!',
   clearMsg: 'おいしいごはんが炊けそう!',
-  maxParticles: 2600,
+  maxParticles: 4200,
   rattlePitch: 0.9,
 
   init(ctx) {
     const d = ctx.data;
-    d.pourer = new Pourer(120, 35);
+    d.pourer = new Pourer(230, 35);
     d.stableT = 0;
     d.overShown = false;
     ctx.sim.defineMaterial(0, {
-      r: 0.95, rJit: 0.08, mu: 0.7, vmax: 85,
+      r: 0.8, rJit: 0.07, mu: 0.5, vmax: 75, interlock: 0.8, sleepK: 0.7,
       sprite: SPRITES.RICE, stretch: 1.9,
       colors: [[1, 1, 1], [0.97, 0.96, 0.9], [1, 0.99, 0.95]],
     });
