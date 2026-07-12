@@ -20,7 +20,7 @@ export default {
     d.birds = [];
     d.cooT = 0;
     ctx.sim.defineMaterial(0, { // 麦つぶ
-      r: 0.8, rJit: 0.1, mu: 0.7, vmax: 120,
+      r: 0.7, rJit: 0.08, mu: 0.7, vmax: 100, interlock: 1.5,
       sprite: SPRITES.SEED, colors: [[1, 1, 1], [0.95, 0.9, 0.8]],
       stretch: 1.5,
     });

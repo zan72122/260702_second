@@ -11,7 +11,7 @@ const $ = (s) => document.querySelector(s);
 
 class App {
   constructor() {
-    this.sim = new GrainSim(4500);
+    this.sim = new GrainSim(9000);
     this.fx = new Effects();
     this.sfx = new Sfx();
     this.tilt = new TiltInput();
@@ -130,10 +130,11 @@ class App {
     this.sfx.stopLoops();
     this.sim.setBounds(this.W, this.H, {});
     Object.assign(this.sim, {
-      gravityX: 0, gravityY: 430, substeps: 2, iterations: 3,
-      contactDamp: 7, fricFloor: 0.08, sleepV: 8, sleepTime: 0.35, onKill: null,
+      gravityX: 0, gravityY: 430, substeps: 2, iterations: 4,
+      contactDamp: 9, fricFloor: 0.08, sleepV: 14, sleepTime: 0.15,
+      staticLatch: 4, wakePen: 0.2, wakeSpeed: 24, activeCount: 0, onKill: null,
     });
-    this.sim.max = Math.min(4500, sc.maxParticles || 3000);
+    this.sim.max = Math.min(9000, sc.maxParticles || 3000);
 
     const app = this;
     this.ctx = {
@@ -280,8 +281,8 @@ class App {
     this.fx.gravity = gBase;
 
     sc.update?.(ctx, dt);
-    // 性能に応じて反復回数を調整
-    sim.iterations = this.frameMs > 26 ? 2 : 3;
+    // 性能に応じて反復回数を調整 (エンジン内の activeCount 自動調整と併用)
+    sim.iterations = this.frameMs > 26 ? 2 : (this.frameMs > 18 ? 3 : 4);
     sim.step(dt);
     this.fx.update(dt, null);
 

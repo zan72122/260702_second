@@ -41,9 +41,14 @@ export class Effects {
     if (this.foam.length > 420) this.foam.shift();
     this.foam.push({ x, y, r, life, t: 0, wob: rand(TAU) });
   }
-  addSteam(x, y, r = 4) {
+  addSteam(x, y, r = 4, col = '255,255,255', a = 0.16) {
     if (this.steam.length > 60) this.steam.shift();
-    this.steam.push({ x, y, r, t: 0, life: rand(1.6, 2.6), drift: rand(-3, 3) });
+    this.steam.push({ x, y, r, t: 0, life: rand(1.6, 2.6), drift: rand(-3, 3), col, alpha: a });
+  }
+  // 砂ぼこり (着地の衝撃で ふわっ)
+  addDust(x, y, r = 3, col = '205,180,140') {
+    if (this.steam.length > 60) this.steam.shift();
+    this.steam.push({ x, y, r, t: 0, life: rand(0.5, 0.9), drift: rand(-6, 6), col, alpha: 0.22 });
   }
   addSpark(x, y, color = '#fff2a8') {
     if (this.sparks.length > 120) this.sparks.shift();
@@ -155,8 +160,8 @@ export class Effects {
       g.globalAlpha = 1;
     }
     for (const s of this.steam) {
-      const a = Math.sin(Math.min(1, s.t / s.life) * Math.PI) * 0.16;
-      g.fillStyle = `rgba(255,255,255,${a})`;
+      const a = Math.sin(Math.min(1, s.t / s.life) * Math.PI) * (s.alpha ?? 0.16);
+      g.fillStyle = `rgba(${s.col ?? '255,255,255'},${a})`;
       g.beginPath(); g.arc(s.x, s.y, s.r, 0, TAU); g.fill();
     }
     for (const r of this.rings) {

@@ -25,7 +25,7 @@ export default {
     d.crankAng = 0;
     d.gateT = 0;
     ctx.sim.defineMaterial(0, {
-      r: 2.7, rJit: 0.12, mu: 0.12, bounce: 0.45, vmax: 200, rollRes: 0.8,
+      r: 2.7, rJit: 0.12, mu: 0.08, bounce: 0.45, vmax: 200, rollRes: 0.8, interlock: 0.1, sleepK: 0.3,
       sprite: SPRITES.BALL, colors: CANDY_COLORS,
     });
     ctx.setTools([{ id: 'crank', icon: '🔄', label: 'ハンドルをまわす!' }]);

@@ -21,7 +21,7 @@ export default {
     d.knocked = 0;
     d.thrown = 0;
     ctx.sim.defineMaterial(0, { // 大豆
-      r: 1.35, rJit: 0.1, mu: 0.45, bounce: 0.3, vmax: 240,
+      r: 1.35, rJit: 0.1, mu: 0.45, bounce: 0.3, vmax: 240, interlock: 0.5, sleepK: 0.6,
       sprite: SPRITES.BEAN, colors: [[1, 1, 1]],
       stretch: 1.2,
     });

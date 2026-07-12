@@ -19,7 +19,7 @@ export default {
   desc: 'しましま模様の 砂絵ボトル',
   goal: '🎯 4色いじょう使って 首もとまで しましまに!',
   clearMsg: 'せかいにひとつの砂絵ボトル!',
-  maxParticles: 3200,
+  maxParticles: 6500,
   tilt: false,
   rattlePitch: 1.5,
 
@@ -28,10 +28,10 @@ export default {
     d.color = 0;
     d.used = new Set();
     d.tool = 'pour';
-    d.pourer = new Pourer(150, 30);
+    d.pourer = new Pourer(300, 30);
     COLORS.forEach((cd, i) => {
       ctx.sim.defineMaterial(i, {
-        r: 0.75, rJit: 0.08, mu: 0.85, vmax: 55,
+        r: 0.55, rJit: 0.06, mu: 0.85, vmax: 45, interlock: 2,
         sprite: SPRITES.SAND, colors: cd.c,
       });
     });
@@ -52,17 +52,17 @@ export default {
     const s = ctx.sim;
     // 瓶: 底広・肩がすぼまる
     s.colliders.push(
-      { kind: 'capsule', ax: d.cx - d.bw / 2, ay: d.neckY + 8, bx: d.cx - d.bw / 2, by: d.bottom, r: 1.6, mu: 0.5 },
-      { kind: 'capsule', ax: d.cx + d.bw / 2, ay: d.neckY + 8, bx: d.cx + d.bw / 2, by: d.bottom, r: 1.6, mu: 0.5 },
+      { kind: 'capsule', ax: d.cx - d.bw / 2, ay: d.neckY + 15, bx: d.cx - d.bw / 2, by: d.bottom, r: 1.6, mu: 0.5 },
+      { kind: 'capsule', ax: d.cx + d.bw / 2, ay: d.neckY + 15, bx: d.cx + d.bw / 2, by: d.bottom, r: 1.6, mu: 0.5 },
       { kind: 'capsule', ax: d.cx - d.bw / 2, ay: d.bottom, bx: d.cx + d.bw / 2, by: d.bottom, r: 1.6, mu: 0.5 },
       // 肩
-      { kind: 'capsule', ax: d.cx - d.bw / 2, ay: d.neckY + 8, bx: d.cx - 7, by: d.neckY, r: 1.6, mu: 0.5 },
-      { kind: 'capsule', ax: d.cx + d.bw / 2, ay: d.neckY + 8, bx: d.cx + 7, by: d.neckY, r: 1.6, mu: 0.5 },
+      { kind: 'capsule', ax: d.cx - d.bw / 2, ay: d.neckY + 15, bx: d.cx - 7, by: d.neckY, r: 1.6, mu: 0.5 },
+      { kind: 'capsule', ax: d.cx + d.bw / 2, ay: d.neckY + 15, bx: d.cx + 7, by: d.neckY, r: 1.6, mu: 0.5 },
       // 首
       { kind: 'capsule', ax: d.cx - 7, ay: d.neckY, bx: d.cx - 7, by: d.top - 4, r: 1.6, mu: 0.5 },
       { kind: 'capsule', ax: d.cx + 7, ay: d.neckY, bx: d.cx + 7, by: d.top - 4, r: 1.6, mu: 0.5 },
     );
-    d.lineY = d.neckY + 10;
+    d.lineY = d.neckY + 17;
     // 棒ツール
     d.stick = { kind: 'circle', x: -999, y: -999, r: 1.6, vx: 0, vy: 0, off: true, noSolid: true, mu: 0.3 };
     s.colliders.push(d.stick);
@@ -136,10 +136,10 @@ export default {
     g.beginPath();
     g.moveTo(d.cx - 7, d.top - 4);
     g.lineTo(d.cx - 7, d.neckY);
-    g.lineTo(d.cx - d.bw / 2, d.neckY + 8);
+    g.lineTo(d.cx - d.bw / 2, d.neckY + 15);
     g.lineTo(d.cx - d.bw / 2, d.bottom);
     g.lineTo(d.cx + d.bw / 2, d.bottom);
-    g.lineTo(d.cx + d.bw / 2, d.neckY + 8);
+    g.lineTo(d.cx + d.bw / 2, d.neckY + 15);
     g.lineTo(d.cx + 7, d.neckY);
     g.lineTo(d.cx + 7, d.top - 4);
     g.closePath();

@@ -8,7 +8,7 @@
 import { clamp } from './utils.js';
 
 export class GrainSim {
-  constructor(max = 4500) {
+  constructor(max = 9000) {
     this.max = max;
     this.n = 0;
     const F = Float32Array;
@@ -24,16 +24,21 @@ export class GrainSim {
     this.rest = new F(max);      // 静止時間 → スリープ
     this.contacts = new Uint8Array(max);
     this.aux = new F(max);       // シーン用 (加熱タイマー等)
+    this.pack = new F(max);      // 締固め度 0..1 (雪の圧雪など)
 
     this.gravityX = 0;
     this.gravityY = 430;
     this._lastGx = 0; this._lastGy = 430;
     this.substeps = 2;
-    this.iterations = 3;
-    this.contactDamp = 7;        // 接触中の粒の速度減衰 (山を落ち着かせる)
+    this.iterations = 4;
+    this.contactDamp = 9;        // 接触中の粒の速度減衰 (山を落ち着かせる)
     this.fricFloor = 0.08;       // 静止摩擦の下限 (pen≈0 でも滑らない)
-    this.sleepV = 8;             // これ未満の速度が続くと眠る
-    this.sleepTime = 0.35;
+    this.sleepV = 14;            // これ未満の速度が続くと眠る (斜面の保持に効く)
+    this.sleepTime = 0.15;
+    this.staticLatch = 4;        // 静止接触の摩擦倍率 (山の斜面を保持)
+    this.wakePen = 0.2;          // 眠った粒を起こすのに必要な食い込み (rsum比)
+    this.wakeSpeed = 24;         // 起こす側に必要な速度 (小さいと山が煮え続ける)
+    this._time = 0;
     this.collisionEnergy = 0;    // 音用: 今フレームの衝突量
 
     // 素材 (最大 8)
@@ -46,7 +51,24 @@ export class GrainSim {
     this.onKill = null;
 
     this.cellSize = 3;
+    this.activeCount = 0;        // 起きている粒の数 (性能スケーリング用)
+    // 素材プロパティの高速参照キャッシュ (ホットループ用)
+    const FM = () => new Float32Array(8);
+    this._muA = FM(); this._ilA = FM(); this._cohA = FM(); this._bounceA = FM();
+    this._gravA = FM(); this._vmaxA = FM(); this._flutterA = FM(); this._sleepKA = FM();
+    this._packableA = new Uint8Array(8);
     this._setupGrid();
+  }
+
+  _refreshMatCache() {
+    for (let k = 0; k < 8; k++) {
+      const m = this.mats[k];
+      if (!m) continue;
+      this._muA[k] = m.mu; this._ilA[k] = m.interlock; this._cohA[k] = m.coh;
+      this._bounceA[k] = m.bounce; this._gravA[k] = m.grav; this._vmaxA[k] = m.vmax;
+      this._flutterA[k] = m.flutter; this._sleepKA[k] = m.sleepK;
+      this._packableA[k] = m.packable ? 1 : 0;
+    }
   }
 
   defineMaterial(id, p) {
@@ -59,6 +81,10 @@ export class GrainSim {
       rollRes: 3.0,     // 回転の減衰
       grav: 1,
       vmax: 110,        // 終端速度 (細かい粒ほど遅い)
+      interlock: 1,     // 粒のかみ合い (角ばった粒ほど大: 安息角が急になる)
+      flutter: 0,       // 空中でのひらひら (雪・軽い粒)
+      packable: false,  // 圧力で締固まる (雪)
+      sleepK: 1,        // スリープしやすさ (球は転がり続けるので小さく)
       sprite: 0,
       colors: [[0.9, 0.8, 0.55]],
       stretch: 1,       // 描画の縦横比 (米=2.1 など)
@@ -112,7 +138,7 @@ export class GrainSim {
     const c = m.colors[(Math.random() * m.colors.length) | 0];
     this.cr[i] = c[0]; this.cg[i] = c[1]; this.cb[i] = c[2];
     this.sprite[i] = m.sprite;
-    this.age[i] = 0; this.rest[i] = 0; this.aux[i] = 0;
+    this.age[i] = 0; this.rest[i] = 0; this.aux[i] = 0; this.pack[i] = 0;
     this.contacts[i] = 0;
     return i;
   }
@@ -122,7 +148,7 @@ export class GrainSim {
     const l = --this.n;
     if (i !== l) {
       for (const a of [this.x, this.y, this.px, this.py, this.vx, this.vy, this.r,
-        this.ang, this.angV, this.cr, this.cg, this.cb, this.sprite, this.age, this.rest, this.aux]) {
+        this.ang, this.angV, this.cr, this.cg, this.cb, this.sprite, this.age, this.rest, this.aux, this.pack]) {
         a[i] = a[l];
       }
       this.mat[i] = this.mat[l];
@@ -177,6 +203,9 @@ export class GrainSim {
     }
     this._lastGx = this.gravityX; this._lastGy = this.gravityY;
     this.collisionEnergy *= 0.6;
+    this._refreshMatCache();
+    // 大規模なだれ (全起床) 時は反復を自動で下げて 60fps を守る
+    this._iterEff = this.activeCount > 3600 ? 2 : (this.activeCount > 2300 ? 3 : this.iterations);
 
     const sub = this.substeps, sdt = dt / sub;
     for (let s = 0; s < sub; s++) this._substep(sdt);
@@ -197,13 +226,20 @@ export class GrainSim {
     const vmax = 0.8 * cs / sdt, vmax2 = vmax * vmax;
 
     // 1) 積分 (眠っている粒はスキップ)
+    this._time += sdt;
+    const tt = this._time;
+    const gravA = this._gravA, vmaxA = this._vmaxA, flutA = this._flutterA;
     for (let i = 0; i < n; i++) {
       if (R[i] > this.sleepTime) { PX[i] = X[i]; PY[i] = Y[i]; VX[i] = 0; VY[i] = 0; continue; }
-      const m = mats[MT[i]];
-      VX[i] += gx * m.grav * sdt;
-      VY[i] += gy * m.grav * sdt;
+      const mt = MT[i];
+      VX[i] += gx * gravA[mt] * sdt;
+      VY[i] += gy * gravA[mt] * sdt;
+      // ひらひら舞い落ちる (雪など、空中のみ)
+      if (flutA[mt] > 0 && this.contacts[i] === 0) {
+        VX[i] += Math.sin(tt * 2.6 + i * 1.71) * flutA[mt] * sdt;
+      }
       // 終端速度 (空気抵抗) と CFL クランプ
-      const vlim = Math.min(m.vmax, vmax);
+      const vlim = Math.min(vmaxA[mt], vmax);
       const v2 = VX[i] * VX[i] + VY[i] * VY[i];
       if (v2 > vlim * vlim) { const k = vlim / Math.sqrt(v2); VX[i] *= k; VY[i] *= k; }
       PX[i] = X[i]; PY[i] = Y[i];
@@ -216,30 +252,46 @@ export class GrainSim {
     // 3) 接触
     this._buildGrid();
     this.contacts.fill(0);
-    for (let it = 0; it < this.iterations; it++) {
-      this._solveContacts(it === this.iterations - 1);
+    const iter = this._iterEff || this.iterations;
+    for (let it = 0; it < iter; it++) {
+      this._solveContacts(it === iter - 1);
       this._collideColliders(sdt);
       this._collideSolids(sdt);
       this._collideBounds(sdt, it === 0);
     }
 
-    // 4) 速度更新 + 接触減衰 + スリープ判定
+    // 4) 速度更新 + 接触減衰 + スリープ/締固め判定
     const inv = 1 / sdt;
     const CT = this.contacts;
+    const PK = this.pack;
+    const bounceA = this._bounceA, sleepKA = this._sleepKA, packA = this._packableA;
+    let active = 0;
     for (let i = 0; i < n; i++) {
-      if (R[i] > this.sleepTime) { R[i] += sdt; continue; } // 眠っていても静止時間は進める
+      if (R[i] > this.sleepTime) {
+        R[i] += sdt; // 眠っていても静止時間は進める
+        // 眠っている雪はゆっくり締固まる
+        if (packA[MT[i]] && PK[i] < 1) PK[i] = Math.min(1, PK[i] + sdt * 0.06);
+        continue;
+      }
+      active++;
       VX[i] = (X[i] - PX[i]) * inv;
       VY[i] = (Y[i] - PY[i]) * inv;
+      const mt = MT[i];
       // 接触している粒は揺れを減衰 → 山が固まる (弾む素材は弱く)
       if (CT[i] >= 2) {
-        const b = mats[MT[i]].bounce;
-        const k = Math.max(0, 1 - this.contactDamp * (1 - b) * sdt);
+        const k = Math.max(0, 1 - this.contactDamp * (1 - bounceA[mt]) * sdt);
         VX[i] *= k; VY[i] *= k;
       }
       const sp = Math.abs(VX[i]) + Math.abs(VY[i]);
-      if (sp < this.sleepV && CT[i] >= 2) R[i] += sdt;
+      if (sp < this.sleepV * sleepKA[mt] && CT[i] >= 2) R[i] += sdt;
       else R[i] = 0;
+      // 締固め: 押されて多接触なら締まる、高速で飛べばほぐれる
+      if (packA[mt]) {
+        if (CT[i] >= 5 && sp < 25) PK[i] = Math.min(1, PK[i] + sdt * 0.35);
+        else if (CT[i] === 0 && sp > 70) PK[i] = Math.max(0, PK[i] - sdt * 1.6);
+      }
     }
+    this.activeCount = active;
     for (const s of this.solids) {
       if (s.kinematic) continue;
       s.vx = (s.x - s.px) * inv;
@@ -250,18 +302,21 @@ export class GrainSim {
   _solveContacts(lastIter) {
     const n = this.n;
     const X = this.x, Y = this.y, PX = this.px, PY = this.py;
-    const RR = this.r, RS = this.rest, MT = this.mat, mats = this.mats;
-    const CT = this.contacts, AV = this.angV;
+    const VX = this.vx, VY = this.vy;
+    const RR = this.r, RS = this.rest, MT = this.mat;
+    const CT = this.contacts, AV = this.angV, PK = this.pack;
+    const muA = this._muA, ilA = this._ilA, cohA = this._cohA, bounceA = this._bounceA;
     const { gw, gh } = this;
     const inv = 1 / this.cellSize;
     const st = this.sleepTime;
 
     for (let i = 0; i < n; i++) {
+      // 眠っている粒は外側ループから除外 (ペアは起きている側が処理する)
+      if (RS[i] > st) continue;
       const xi = X[i], yi = Y[i], ri = RR[i];
-      const iAsleep = RS[i] > st;
       const cx = clamp((xi * inv + 1) | 0, 0, gw - 1);
       const cy = clamp((yi * inv + 1) | 0, 0, gh - 1);
-      const mi = mats[MT[i]];
+      const mti = MT[i];
       const massI = ri * ri;
       const y1 = Math.min(gh - 1, cy + 1), x1 = Math.min(gw - 1, cx + 1);
       for (let gy2 = Math.max(0, cy - 1); gy2 <= y1; gy2++) {
@@ -269,17 +324,22 @@ export class GrainSim {
           const c = gy2 * gw + gx2;
           for (let k = this.cellStart[c], e = this.cellStart[c + 1]; k < e; k++) {
             const j = this.cellPart[k];
-            if (j <= i || j >= n) continue;
+            if (j === i || j >= n) continue;
             const jAsleep = RS[j] > st;
-            if (iAsleep && jAsleep) continue;
-            let dx = X[j] - X[i], dy = Y[j] - Y[i];
+            // 起き-起きペアはインデックス順で1回、起き-寝ペアは起きている側が処理
+            if (!jAsleep && j < i) continue;
+            const dx = X[j] - X[i], dy = Y[j] - Y[i];
             const rsum = ri + RR[j];
             const d2 = dx * dx + dy * dy;
-            const mj = mats[MT[j]];
-            // 付着レンジ (雪)
-            const coh = Math.min(mi.coh, mj.coh);
-            const reach = coh > 0 ? rsum + rsum * 0.14 : rsum;
-            if (d2 >= reach * reach || d2 < 1e-9) continue;
+            // 早期棄却 (付着レンジ 1.14 倍を上限に)
+            const reachMax = rsum * 1.14;
+            if (d2 >= reachMax * reachMax || d2 < 1e-9) continue;
+            const mtj = MT[j];
+            // 付着レンジ (雪) — 締固まった雪ほど強く固まる
+            const packBoost = 1 + (PK[i] + PK[j]) * 0.9;
+            const coh = Math.min(cohA[mti], cohA[mtj]) * packBoost;
+            const reach = coh > 0 ? reachMax : rsum;
+            if (d2 >= reach * reach) continue;
             const d = Math.sqrt(d2);
             const nx = dx / d, ny = dy / d;
             const massJ = RR[j] * RR[j];
@@ -288,10 +348,11 @@ export class GrainSim {
 
             if (pen > 0) {
               CT[i]++; CT[j]++;
-              // 相手が寝てても強く食い込んだら起こす
-              if (pen > rsum * 0.08) {
-                if (iAsleep) RS[i] = 0;
-                if (jAsleep) RS[j] = 0;
+              // 動いている粒が強く食い込んできたら眠っている粒を起こす
+              // (静的な深部の食い込みでは起こさない — 深い山ごと眠れる)
+              if (jAsleep && pen > rsum * this.wakePen &&
+                  Math.abs(VX[i]) + Math.abs(VY[i]) > this.wakeSpeed) {
+                RS[j] = 0;
               }
               const relax = 0.85;
               const cxp = nx * pen * relax, cyp = ny * pen * relax;
@@ -299,9 +360,12 @@ export class GrainSim {
               X[j] += cxp * wj; Y[j] += cyp * wj;
 
               // クーロン摩擦 (このサブステップの接線相対変位を制限)
-              // fricFloor: 静止した粒どうしは pen≈0 でも滑らないよう摩擦の下限を持つ
-              const mu = (mi.mu + mj.mu) * 0.5;
-              const budget = mu * (pen + this.fricFloor * rsum);
+              // fricFloor×interlock: 角ばった粒のかみ合い。締固めでさらに強く。
+              // 両方が静止気味の接触は「かみ合いラッチ」でさらに強く保持 (安息角の要)
+              const mu = (muA[mti] + muA[mtj]) * 0.5;
+              let il = (ilA[mti] + ilA[mtj]) * 0.5 * packBoost;
+              if (RS[i] > 0.05 && RS[j] > 0.05) il *= this.staticLatch;
+              const budget = mu * (pen + this.fricFloor * rsum * il);
               let ux = (X[i] - PX[i]) - (X[j] - PX[j]);
               let uy = (Y[i] - PY[i]) - (Y[j] - PY[j]);
               const un = ux * nx + uy * ny;
@@ -323,7 +387,7 @@ export class GrainSim {
               }
               // 衝突の非弾性吸収: 接近する法線相対速度を殺す (砂は跳ねない)
               if (lastIter && un < -0.02) {
-                const kAbs = (1 - Math.max(mi.bounce, mj.bounce)) * 0.85;
+                const kAbs = (1 - Math.max(bounceA[mti], bounceA[mtj])) * 0.85;
                 const c = un * kAbs;
                 PX[i] += nx * c * wi; PY[i] += ny * c * wi;
                 PX[j] -= nx * c * wj; PY[j] -= ny * c * wj;
@@ -347,7 +411,9 @@ export class GrainSim {
     const b = this.bounds, n = this.n;
     const X = this.x, Y = this.y, RR = this.r, CT = this.contacts;
     const muW = 0.5;
+    const RS = this.rest, st = this.sleepTime;
     for (let i = 0; i < n; i++) {
+      if (RS[i] > st) continue; // 眠っている粒は動かないので境界チェック不要
       const r = RR[i];
       let hit = 0, nx = 0, ny = 0, pen = 0;
       if (b.left && X[i] < r) { pen = r - X[i]; X[i] = r; nx = 1; ny = 0; hit = 1; }
@@ -401,13 +467,17 @@ export class GrainSim {
       if (c.kind === 'circle') {
         const Rq = c.r;
         this._forEachNear(c.x, c.y, Rq + this.cellSize, (i) => {
+          if (!moving && this.rest[i] > this.sleepTime) return;
           const dx = this.x[i] - c.x, dy = this.y[i] - c.y;
           const rr = Rq + this.r[i];
           const d2 = dx * dx + dy * dy;
           if (d2 >= rr * rr) return;
           const d = Math.sqrt(d2) || 0.001;
           const nx = dx / d, ny = dy / d, pen = rr - d;
-          if (moving) this.rest[i] = 0;
+          if (moving) {
+            this.rest[i] = 0;
+            if (this.mats[this.mat[i]].packable) this.pack[i] = Math.min(1, this.pack[i] + 0.05);
+          }
           this.x[i] = c.x + nx * rr; this.y[i] = c.y + ny * rr;
           this.contacts[i] += 2;
           const bnc = this.mats[this.mat[i]].bounce;
@@ -433,6 +503,7 @@ export class GrainSim {
     const x0 = Math.min(ax, c.bx) - pad, x1 = Math.max(ax, c.bx) + pad;
     const y0 = Math.min(ay, c.by) - pad, y1 = Math.max(ay, c.by) + pad;
     this._forEachInAabb(x0, y0, x1, y1, (i) => {
+      if (!moving && this.rest[i] > this.sleepTime) return;
       let t = ((this.x[i] - ax) * ex + (this.y[i] - ay) * ey) / el2;
       t = t < 0 ? 0 : t > 1 ? 1 : t;
       const qx = ax + ex * t, qy = ay + ey * t;
@@ -442,7 +513,10 @@ export class GrainSim {
       if (d2 >= rr * rr) return;
       const d = Math.sqrt(d2) || 0.001;
       const nx = dx / d, ny = dy / d, pen = rr - d;
-      if (moving) this.rest[i] = 0;
+      if (moving) {
+        this.rest[i] = 0;
+        if (this.mats[this.mat[i]].packable) this.pack[i] = Math.min(1, this.pack[i] + 0.05);
+      }
       this.x[i] = qx + nx * rr; this.y[i] = qy + ny * rr;
       this.contacts[i] += 2;
       const bnc = this.mats[this.mat[i]].bounce;
@@ -455,6 +529,7 @@ export class GrainSim {
   _boxCollide(c, cvx, cvy, mu, sdt, moving) {
     const pad = this.cellSize;
     this._forEachInAabb(c.x - c.hw - pad, c.y - c.hh - pad, c.x + c.hw + pad, c.y + c.hh + pad, (i) => {
+      if (!moving && this.rest[i] > this.sleepTime) return;
       const r = this.r[i];
       const x0 = c.x - c.hw - r, x1 = c.x + c.hw + r;
       const y0 = c.y - c.hh - r, y1 = c.y + c.hh + r;
@@ -467,7 +542,10 @@ export class GrainSim {
       else if (m === dy1) { this.y[i] = y1; nx = 0; ny = 1; }
       else if (m === dx0) { this.x[i] = x0; nx = -1; ny = 0; }
       else { this.x[i] = x1; nx = 1; ny = 0; }
-      if (moving) this.rest[i] = 0;
+      if (moving) {
+        this.rest[i] = 0;
+        if (this.mats[this.mat[i]].packable) this.pack[i] = Math.min(1, this.pack[i] + 0.05);
+      }
       this.contacts[i] += 2;
       this._wallFriction(i, nx, ny, m, mu);
       if (moving) { this.x[i] += cvx * sdt * 0.9; this.y[i] += cvy * sdt * 0.9; }
@@ -566,6 +644,7 @@ export class GrainSim {
         const gm = this.r[i] * this.r[i];
         const wG = smass / (smass + gm);   // 粒がほぼ動く
         this.rest[i] = 0;
+        if (this.mats[this.mat[i]].packable) this.pack[i] = Math.min(1, this.pack[i] + 0.04);
         this.x[i] += nx * pen * wG; this.y[i] += ny * pen * wG;
         this.contacts[i] += 2;
         // 粒 → 剛体への反力 (山の上に乗れる)

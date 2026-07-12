@@ -23,7 +23,7 @@ export default {
       sprite: SPRITES.KERNEL, colors: [[1, 1, 1]],
     });
     ctx.sim.defineMaterial(1, { // はじけた
-      r: 2.3, rJit: 0.3, mu: 0.7, vmax: 320, bounce: 0.2,
+      r: 2.3, rJit: 0.3, mu: 0.7, vmax: 320, bounce: 0.2, interlock: 0.8, sleepK: 0.9,
       sprite: SPRITES.POPCORN, colors: [[1, 1, 1]],
     });
     ctx.setTools([

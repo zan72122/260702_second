@@ -11,15 +11,15 @@ export default {
   desc: '安息角で できる ほんものの砂山',
   goal: '🎯 旗のラインまで 高いお山を つくろう!',
   clearMsg: 'りっぱなお山!はた を立てたよ!',
-  maxParticles: 3000,
+  maxParticles: 6500,
 
   init(ctx) {
     const d = ctx.data;
     d.tool = 'pour';
-    d.pourer = new Pourer(160, 30);
+    d.pourer = new Pourer(340, 30);
     d.flagPlanted = false;
     ctx.sim.defineMaterial(0, {
-      r: 0.85, rJit: 0.12, mu: 1.0, vmax: 55,
+      r: 0.6, rJit: 0.08, mu: 1.0, vmax: 45, interlock: 4,
       sprite: SPRITES.SAND,
       colors: [[0.93, 0.8, 0.55], [0.88, 0.74, 0.48], [0.97, 0.86, 0.62], [0.85, 0.7, 0.45]],
     });
@@ -34,7 +34,7 @@ export default {
   layout(ctx) {
     const { W, H } = ctx, d = ctx.data;
     d.groundY = H - Math.min(H * 0.13, 22);
-    d.targetY = d.groundY - Math.min(H * 0.24, W * 0.28, 42);
+    d.targetY = d.groundY - Math.min(H * 0.28, W * 0.3, 46);
     d.hand = { kind: 'circle', x: -999, y: -999, r: 5, vx: 0, vy: 0, off: true, noSolid: true, mu: 0.8 };
     ctx.sim.colliders.push(d.hand);
     // 砂場の枠
@@ -56,6 +56,10 @@ export default {
     d.pourer.mat = 0;
     d.pourer.update(ctx, dt, pouring, p ? p.x : 0, p ? Math.min(p.y, d.targetY - 20) : 0, 4);
     ctx.sfx.setPour(pouring ? 0.4 : 0, 1.3);
+    // 着地点の砂ぼこり
+    if (pouring && Math.random() < dt * 10) {
+      ctx.fx.addDust(p.x + rand(-4, 4), s.topAt(p.x, 4) - 1, rand(2, 3.5));
+    }
 
     // 手でおす/ほる
     if (d.tool === 'dig' && p) {

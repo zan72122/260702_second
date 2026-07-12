@@ -11,7 +11,7 @@ export default {
   desc: 'ザッザッ… 道をあけよう',
   goal: '🎯 シャベルで玄関までの道の雪をどかそう!',
   clearMsg: 'これで出かけられる!おつかれさま!',
-  maxParticles: 3000,
+  maxParticles: 6200,
   rattle: 0.3,
 
   init(ctx) {
@@ -19,7 +19,8 @@ export default {
     d.snowT = 0;
     d.zakuT = 0;
     ctx.sim.defineMaterial(0, { // 雪
-      r: 1.05, rJit: 0.14, mu: 0.95, coh: 0.45, vmax: 46,
+      r: 0.78, rJit: 0.1, mu: 0.95, coh: 0.45, vmax: 42,
+      interlock: 4, packable: true, flutter: 28,
       sprite: SPRITES.SNOW,
       colors: [[1, 1, 1], [0.95, 0.97, 1]],
     });
@@ -58,6 +59,9 @@ export default {
       if (sp > 80 && d.zakuT <= 0 && p.y > d.groundY - 30) {
         d.zakuT = 0.3;
         ctx.sfx.zaku();
+      }
+      if (sp > 90 && Math.random() < dt * 14) {
+        ctx.fx.addDust(p.x + rand(-6, 6), p.y + rand(-4, 2), rand(2, 4), '238,243,252');
       }
     } else d.shovel.hide();
 
