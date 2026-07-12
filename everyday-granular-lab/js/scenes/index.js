@@ -11,6 +11,16 @@ import gacha from './gacha.js';
 import pigeons from './pigeons.js';
 import shoveling from './shoveling.js';
 import cereal from './cereal.js';
+import antfarm from './antfarm.js';
+import brazilnut from './brazilnut.js';
+import coffeemill from './coffeemill.js';
+import sieve from './sieve.js';
+import ironsand from './ironsand.js';
+import liquefaction from './liquefaction.js';
+import balance from './balance.js';
+import fossil from './fossil.js';
+import crater from './crater.js';
+import reposelab from './reposelab.js';
 
 export const SCENES = [
   sandbox,    // 砂場でお山づくり
@@ -25,4 +35,15 @@ export const SCENES = [
   mamemaki,   // 節分の豆まき
   pigeons,    // ハトにエサやり
   cereal,     // 朝のシリアル
+  // ── 実験・観察シリーズ ──
+  antfarm,      // アリの巣観察キット
+  brazilnut,    // ブラジルナッツ効果
+  coffeemill,   // コーヒーミル挽き
+  sieve,        // ふるい分け実験
+  ironsand,     // 砂鉄あつめ
+  liquefaction, // 液状化のぼうさい実験
+  balance,      // てんびんで粒はかり
+  fossil,       // 化石はっくつキット
+  crater,       // クレーター実験
+  reposelab,    // 安息角くらべ
 ];
