@@ -7,7 +7,7 @@
 | `yoshi-story-game/` | ヨッシーストーリー風 3D ブラウザゲーム |
 | `pretty-princess-game/` | プリティ・プリンセス マジカルコーディネート風 3D ゲーム |
 | `strawberry-shortcake-game/` | いちごショートケーキをつくろう! (iPhone 縦画面向け お菓子づくりゲーム) |
-| `everyday-fluid-lab/` | まいにち流体ラボ — 日常の液体を流体力学シミュレーションで遊ぶ 12シーン (iPhone/iPad 縦横対応) |
+| `everyday-fluid-lab/` | まいにち流体ラボ — 日常の液体を流体力学シミュレーションで遊ぶ 22シーン (実験・観察シリーズ入り、iPhone/iPad 縦横対応) |
 | `yawaraka-lab/` | やわらかラボ — ねんど・スライム・もち等 12種類のやわらか素材を指でこねて遊ぶ触覚シミュレーター (4歳向け・iPhone/iPad 縦横対応) |
 | `tenohira-suiro-lab/` | てのひら水路ラボ — カメラにうつした自分の手が水路やダムになる水あそび物理シミュレーター (4歳向け・iPhone/iPad 縦横対応・カメラなしでも指で遊べる) |
 | `everyday-granular-lab/` | まいにち粒つぶラボ — 砂・米・雪・ビーズ等、日常の粒状物を粒状体力学シミュレーションで遊ぶ 12シーン (iPhone/iPad 縦横対応) |
