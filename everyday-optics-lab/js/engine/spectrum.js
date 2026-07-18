@@ -65,6 +65,8 @@ export const MATERIALS = {
   ice: { A: 1.3049, B: 0.00512 },
   // 高分散ガラス (おもちゃのプリズム風、虹が広がりやすい)
   flint: { A: 1.60, B: 0.010 },
+  // ダイヤモンド: n(589)≈2.417, 高分散 (ファイアのもと)
+  diamond: { A: 2.382, B: 0.0121 },
 };
 
 export function refIndex(mat, lNm) {
