@@ -8,7 +8,7 @@ import { clamp } from './engine/utils.js';
 import { makeSpectrum } from './engine/spectrum.js';
 import { drawRays, drawScreenGlow } from './engine/render2d.js';
 import { marchRay } from './engine/march.js';
-import { SCENES } from './scenes/index.js';
+import { SCENES, SECTIONS } from './scenes/index.js';
 
 const $ = (s) => document.querySelector(s);
 
@@ -51,7 +51,14 @@ class App {
   _buildHome() {
     const cards = $('#cards');
     cards.innerHTML = '';
-    for (const sc of SCENES) {
+    SCENES.forEach((sc, idx) => {
+      const sec = SECTIONS.find((s) => s.at === idx);
+      if (sec) {
+        const h = document.createElement('h2');
+        h.className = 'sec';
+        h.textContent = sec.title;
+        cards.appendChild(h);
+      }
       const el = document.createElement('button');
       el.className = 'card';
       el.innerHTML = `
@@ -61,7 +68,7 @@ class App {
         <span class="card-star">${this.stars[sc.id] ? '⭐' : '☆'}</span>`;
       el.addEventListener('click', () => { this.sfx.unlock(); this.sfx.pop(1.4); this.enter(sc); });
       cards.appendChild(el);
-    }
+    });
   }
 
   _bindUI() {
@@ -103,6 +110,8 @@ class App {
     $('#play').hidden = false;
     this._resize();
     this.tracer.clear();
+    // シーンごとに調整される可能性があるので既定値へ戻す
+    Object.assign(this.tracer, { maxBounce: 14, minI: 0.015, maxSegs: 4000 });
     this.fx.clear();
     this.sfx.stopLoops();
     this.skyC.style.display = sc.sky ? 'block' : 'none';

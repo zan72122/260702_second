@@ -45,6 +45,15 @@ html, body {
   gap: 10px;
   padding-bottom: 12px;
 }
+#cards .sec {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: clamp(14px, 3.8vw, 18px);
+  letter-spacing: 1px;
+  opacity: 0.9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  padding-bottom: 4px;
+}
 .card {
   position: relative;
   display: flex;
