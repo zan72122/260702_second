@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#141a33">
+<title>まいにち光ラボ 🔆 日常の光シミュレーター</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌈</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ホーム画面 -->
+  <div id="home">
+    <header id="homeHeader">
+      <h1><span class="drop">🌈</span> まいにち光ラボ</h1>
+      <p>日常にひそむ「光のふしぎ」を、本物の物理でさわって あそぼう!</p>
+    </header>
+    <div id="cards"></div>
+    <footer id="homeFooter">
+      <p>🔆 波長ごとの屈折・干渉・散乱をリアルタイム計算しているよ</p>
+      <p>📱 iPhone / iPad の たて・よこ、どちらでも遊べます</p>
+    </footer>
+  </div>
+
+  <!-- プレイ画面 -->
+  <div id="play" hidden>
+    <div id="stage">
+      <canvas id="sky"></canvas>
+      <canvas id="back"></canvas>
+      <canvas id="over"></canvas>
+    </div>
+    <div id="topbar">
+      <button id="btnBack" class="iconbtn" aria-label="もどる">←</button>
+      <div id="titleWrap">
+        <div id="sceneTitle"></div>
+        <div id="progressWrap"><div id="progressBar"></div></div>
+      </div>
+      <button id="btnReset" class="iconbtn" aria-label="やりなおす">↺</button>
+      <button id="btnSound" class="iconbtn" aria-label="サウンド">🔊</button>
+    </div>
+    <div id="hint"></div>
+    <div id="toolbar"></div>
+    <div id="toast"></div>
+  </div>
+
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
